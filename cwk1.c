@@ -47,11 +47,21 @@ void saveMirrorImage( struct Image *img )
 {
 	// Your parallel implementation should go here.
 	/*
-Create a mirror image in which the order of pixels within each row is reversed, so the image
-is flipped left–to–right. More precisely, for row row and column col, the corresponding
-pixel value pixels[row][col] should be replaced with pixels[row][width-col-1]. The
-resulting image is saved as mirror.pgm.
-*/
+	Create a mirror image in which the order of pixels within each row is reversed, so the image
+	is flipped left–to–right. More precisely, for row row and column col, the corresponding
+	pixel value pixels[row][col] should be replaced with pixels[row][width-col-1]. The
+	resulting image is saved as mirror.pgm.
+	*/
+
+	int row, col, tmp;
+	for( row=0; row<img->height; row++ )
+		for( col=0; col<img->width/2; col++ )
+		{
+			tmp = img->pixels[row][col];
+			img->pixels[row][col] = img->pixels[row][img->width-col-1];
+			img->pixels[row][img->width-col-1] = tmp;
+		}
+
 	// Save as "mirror.pgm". You must call this function to save your final image.
 	writeMirrorImage( img );
 }
@@ -68,6 +78,7 @@ pixels[x][y]=(pixels[x-1][y]+pixels[x+1][y]+pixels[x][y-1]+pixels[x][y+1])/4;
 Pixels at the edges of the image are not changed. Your parallel algorithm should follow
 the red–black Gauss–Seidel pattern discussed at the end of Lecture 5.
 */
+
 	// Save as "blurred.pgm". You must call this function to save your final image.
 	writeBlurredImage( img );
 }

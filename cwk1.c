@@ -54,6 +54,7 @@ void saveMirrorImage( struct Image *img )
 	*/
 
 	int row, col, tmp;
+	#pragma omp parallel for collapse(2) private(tmp)
 	for( row=0; row<img->height; row++ )
 		for( col=0; col<img->width/2; col++ )
 		{

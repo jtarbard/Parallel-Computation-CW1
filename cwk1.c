@@ -75,10 +75,23 @@ void saveBlurredImage( struct Image *img )
 Blurs the image and outputs as blurred.pgm. The blurring is to be performed by sweeping
 through the image 10 times. For each sweep, the value of each pixel is replaced by the
 average of the 4 pixels surrounding that pixel, i.e.
-pixels[x][y]=(pixels[x-1][y]+pixels[x+1][y]+pixels[x][y-1]+pixels[x][y+1])/4;
+pixels[row][col]=(pixels[x-1][col]+pixels[x+1][col]+pixels[row][y-1]+pixels[row][y+1])/4;
 Pixels at the edges of the image are not changed. Your parallel algorithm should follow
 the red–black Gauss–Seidel pattern discussed at the end of Lecture 5.
 */
+		
+	int sweep, redBlack, row, col;
+
+	for( sweep=0; sweep<10; sweep++ )
+		for( redBlack=0; redBlack<2; redBlack++ )
+			for( row=1; row<img->height-1; row++ )
+				for( col=1; col<img->width-1; col++ )
+				{
+					if( col%2 == redBlack )
+					{
+						img->pixels[row][col] = (img->pixels[row-1][col] + img->pixels[row+1][col] + img->pixels[row][col-1] + img->pixels[row][col+1])/4;
+					}
+				}
 
 	// Save as "blurred.pgm". You must call this function to save your final image.
 	writeBlurredImage( img );

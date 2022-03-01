@@ -83,6 +83,7 @@ the red–black Gauss–Seidel pattern discussed at the end of Lecture 5.
 	int sweep, redBlack, row, col;
 
 	for( sweep=0; sweep<10; sweep++ )
+		#pragma omp parallel for collapse(3)
 		for( redBlack=0; redBlack<2; redBlack++ )
 			for( row=1; row<img->height-1; row++ )
 				for( col=1; col<img->width-1; col++ )

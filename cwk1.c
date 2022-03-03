@@ -33,7 +33,7 @@
 void saveNegativeImage( struct Image *img )
 {
 	int row, col;
-
+	#pragma omp parallel for collapse(2)
 	for( row=0; row<img->height; row++ )
 		for( col=0; col<img->width; col++ )
 			img->pixels[row][col] = img->maxValue - img->pixels[row][col];
@@ -46,6 +46,22 @@ void saveNegativeImage( struct Image *img )
 void saveMirrorImage( struct Image *img )
 {
 	// Your parallel implementation should go here.
+	/*
+	Create a mirror image in which the order of pixels within each row is reversed, so the image
+	is flipped left–to–right. More precisely, for row row and column col, the corresponding
+	pixel value pixels[row][col] should be replaced with pixels[row][width-col-1]. The
+	resulting image is saved as mirror.pgm.
+	*/
+
+	int row, col, tmp;
+	#pragma omp parallel for collapse(2) private(tmp)
+	for( row=0; row<img->height; row++ )
+		for( col=0; col<img->width/2; col++ )
+		{
+			tmp = img->pixels[row][col];
+			img->pixels[row][col] = img->pixels[row][img->width-col-1];
+			img->pixels[row][img->width-col-1] = tmp;
+		}
 
 	// Save as "mirror.pgm". You must call this function to save your final image.
 	writeMirrorImage( img );
@@ -55,6 +71,28 @@ void saveMirrorImage( struct Image *img )
 void saveBlurredImage( struct Image *img )
 {
 	// Your parallel implementation should go here.
+/*
+Blurs the image and outputs as blurred.pgm. The blurring is to be performed by sweeping
+through the image 10 times. For each sweep, the value of each pixel is replaced by the
+average of the 4 pixels surrounding that pixel, i.e.
+pixels[row][col]=(pixels[x-1][col]+pixels[x+1][col]+pixels[row][y-1]+pixels[row][y+1])/4;
+Pixels at the edges of the image are not changed. Your parallel algorithm should follow
+the red–black Gauss–Seidel pattern discussed at the end of Lecture 5.
+*/
+		
+	int sweep, redBlack, row, col;
+
+	for( sweep=0; sweep<10; sweep++ )
+		#pragma omp parallel for collapse(3)
+		for( redBlack=0; redBlack<2; redBlack++ )
+			for( row=1; row<img->height-1; row++ )
+				for( col=1; col<img->width-1; col++ )
+				{
+					if( col%2 == redBlack )
+					{
+						img->pixels[row][col] = (img->pixels[row-1][col] + img->pixels[row+1][col] + img->pixels[row][col-1] + img->pixels[row][col+1])/4;
+					}
+				}
 
 	// Save as "blurred.pgm". You must call this function to save your final image.
 	writeBlurredImage( img );
@@ -67,11 +105,13 @@ void generateHistogram( struct Image *img )
 	int *hist = (int*) calloc( img->maxValue, sizeof(int) );
 
 	// Loop through all pixels and add to the relevant histogram bin.
-	int row, col;
+	int row, col, val;
+	#pragma omp parallel for
 	for( row=0; row<img->height; row++ )
+		#pragma omp parallel for private(val)
 		for( col=0; col<img->width; col++ )
 		{
-			int val = img->pixels[row][col];			// Double-check that the value is in the valid range.
+			val = img->pixels[row][col];			// Double-check that the value is in the valid range.
 			if( val>=0 && val<img->maxValue )
 				hist[val]++;
 		}
@@ -81,6 +121,12 @@ void generateHistogram( struct Image *img )
 
 	// Free up the memory allocated for the histogram.
 	free( hist );
+
+	/*
+	Generates a histogram of greyscale values; that is, an array that counts how many pixels
+have greyscale value 0, how many have value 1, etc. up until maxValue. This is then saved
+to a file histogram.dat to be displayed using a Python script plotHistogram.py
+*/
 }
 
 
